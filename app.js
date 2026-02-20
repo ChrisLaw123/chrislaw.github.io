@@ -88,8 +88,8 @@ const siteData = {
                 "Fully responsive design"
             ],
             technologies: ["HTML", "CSS", "JavaScript", "GitHub Pages"],
-            github: "https://github.com/ChrisLaw123/chrislaw123.github.io"
-        }
+            github: "https://github.com/ChrisLaw123/chrislaw.github.io"
+        }            
     ],
     
     interests: [
