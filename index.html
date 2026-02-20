@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chris Law - Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <a href="#" class="logo" data-page="home">Chris Law</a>
+            <nav>
+                <div class="nav-links">
+                    <a href="#" class="nav-link active" data-page="home">Home</a>
+                    <a href="#" class="nav-link" data-page="about">About</a>
+                    <a href="#" class="nav-link" data-page="projects">Projects</a>
+                    <a href="#" class="nav-link" data-page="interests">Interests</a>
+                </div>
+                <button class="contact-btn" id="contactBtn">Contact</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="mainContent">
+        <!-- Pages will be dynamically loaded here -->
+    </main>
+
+    <!-- Project Modal -->
+    <div class="project-modal-overlay" id="projectModal">
+        <div class="project-modal">
+            <button class="close-modal" id="closeModal">×</button>
+            <div class="project-modal-content" id="modalContent">
+                <!-- Modal content will be dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <a href="mailto:claw2547@gmail.com" class="footer-email">claw2547@gmail.com</a>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">604-704-6831</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <div class="footer-links">
+                        <a href="https://github.com/ChrisLaw123" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        <a href="https://www.linkedin.com/in/chris-law-6b78a03a5/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
