@@ -1,4 +1,4 @@
-// Your portfolio data
+//Portfolio data
 const siteData = {
     name: "Chris Law",
     email: "claw2547@gmail.com",
@@ -19,7 +19,7 @@ const siteData = {
             description: "Interactive polynomial curve fitter with real-time visualization and regression analysis.",
             fullDescription: "Built a browser-based polynomial curve fitter implementing least squares regression from scratch. Dynamically visualizes fitted curves with Chart.js and provides R² fitness scoring for data analysis.",
             tags: ["HTML", "CSS", "JavaScript", "Chart.js", "Linear Algebra"],
-            image: null,
+            image: "images/Curve_Fitter.png",
             features: [
                 "Least squares regression implementation",
                 "Real-time curve visualization",
@@ -35,7 +35,7 @@ const siteData = {
             description: "Steam Workshop mod with ~700 unique subscribers featuring custom items and procedural generation.",
             fullDescription: "Created a comprehensive Terraria mod published on Steam Workshop that has attracted nearly 700 unique subscribers. Features custom items, ores, and a procedurally generated biome system that adds new exploration dimensions to the game.",
             tags: ["C#", "Game Dev", "Procedural Gen"],
-            image: null,
+            image: "images/Terraria_Mod.png",
             features: [
                 "Custom items and crafting recipes",
                 "Procedural biome generation system",
@@ -50,7 +50,7 @@ const siteData = {
             description: "Arduino-based cognitive screening system with audio capture and automated analysis.",
             fullDescription: "Developed an Arduino system to automate Confusion Assessment Method (CAM) testing for cognitive screening. Captures patient audio using microphone modules, stores data on SD cards, and implements automated scoring algorithms.",
             tags: ["Arduino", "C++", "Analog Transcription"],
-            image: null,
+            image: "images/CAM.png",
             features: [
                 "Real-time audio capture and storage",
                 "SD card data logging",
@@ -65,7 +65,7 @@ const siteData = {
             description: "Neural network learns to play Flappy Bird using NEAT genetic algorithm.",
             fullDescription: "Implemented a Flappy Bird AI using NeuroEvolution of Augmenting Topologies (NEAT). The neural network learns optimal gameplay through fitness-based evolution, demonstrating genetic algorithms in action.",
             tags: ["Python", "AI", "NEAT"],
-            image: null,
+            image: "images/FlappyBird.png",
             features: [
                 "NEAT neural network implementation",
                 "Fitness-based evolution",
@@ -120,7 +120,7 @@ const siteData = {
     ],
     
     about: {
-        bio: "I'm a Computer Engineering student at University of Waterloo with a passion for self learning and creating. My experience spans embedded systems, web development, and algorithm implementation. I enjoy combining hardware and software to create .",
+        bio: "I'm a Computer Engineering student at University of Waterloo with a passion for self learning and creating. My experience spans embedded systems, web development, and algorithm implementation.",
         
         skills: [
             "C++", "Java", "Python", "JavaScript",
