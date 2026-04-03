@@ -11,7 +11,7 @@ const siteData = {
         headline: "Computer Engineering Student & Developer",
         description: "Building automated systems and web applications. Currently studying at University of Waterloo with a focus on embedded systems and full-stack development."
     },
-    currently: "Studying Computer Engineering at University of Waterloo - Working on a Pytorch ML project",
+    currently: "Studying Computer Engineering at University of Waterloo - Working on a stock exchange simulator",
     
     allProjects: [
         {
