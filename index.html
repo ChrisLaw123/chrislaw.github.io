@@ -3,63 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chris Law - Portfolio</title>
+    <title>Chris Law, Computer Engineering Student</title>
+    <meta name="description" content="Computer engineering student at the University of Waterloo. Explore my projects in PCB design, embedded systems, and C++.">
+
+    <!-- Link preview. Without these, pasting the URL into LinkedIn, Discord
+         or a message produces a blank grey card. og:image must be absolute,
+         and the URL is fixed: the repo name is printed on QR codes. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Chris Law">
+    <meta property="og:title" content="Chris Law, Computer Engineering Student">
+    <meta property="og:description" content="Computer engineering student at the University of Waterloo. Explore my projects in PCB design, embedded systems, and C++.">
+    <meta property="og:url" content="https://chrislaw123.github.io/chrislaw.github.io/">
+    <meta property="og:image" content="https://chrislaw123.github.io/chrislaw.github.io/og-c-card.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Chris Law, computer engineering at Waterloo, beside a render of his ESP32-S3 development board">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2348d597'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='monospace' font-size='16' font-weight='700' fill='%23101418'%3ECL%3C/text%3E%3C/svg%3E">
+    <script>
+        // Runs before first paint so the chosen theme never flashes.
+        try {
+            var saved = localStorage.getItem('theme');
+            if (saved === 'light' || saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', saved);
+            }
+        } catch (e) {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-content">
-            <a href="#" class="logo" data-page="home">Chris Law</a>
-            <nav>
-                <div class="nav-links">
-                    <a href="#" class="nav-link active" data-page="home">Home</a>
-                    <a href="#" class="nav-link" data-page="about">About</a>
-                    <a href="#" class="nav-link" data-page="projects">Projects</a>
-                    <a href="#" class="nav-link" data-page="interests">Interests</a>
-                </div>
-                <button class="contact-btn" id="contactBtn">Contact</button>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="masthead">
+        <div class="masthead-inner">
+            <a href="#top" class="wordmark">Chris Law</a>
+            <nav class="nav" aria-label="Primary">
+                <a href="#work" class="nav-link" data-spy="work">Projects</a>
+                <a href="#about" class="nav-link" data-spy="about">About</a>
+                <a href="#contact" class="nav-cta">Get in touch</a>
+                <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch theme">
+                    <svg width="15" height="15" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                        <g id="iconSun" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                            <circle cx="10" cy="10" r="3.6"/>
+                            <path d="M10 1.6v2M10 16.4v2M1.6 10h2M16.4 10h2M4.1 4.1l1.4 1.4M14.5 14.5l1.4 1.4M15.9 4.1l-1.4 1.4M5.5 14.5l-1.4 1.4"/>
+                        </g>
+                        <path id="iconMoon" d="M16.5 12.6A7 7 0 0 1 7.4 3.5a7 7 0 1 0 9.1 9.1z" fill="currentColor"/>
+                    </svg>
+                </button>
             </nav>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main id="mainContent">
-        <!-- Pages will be dynamically loaded here -->
+    <main id="main">
+        <!-- Deliberately short. The work needs to clear the fold. -->
+        <section class="hero" id="top">
+            <div class="hero-inner">
+                <h1 class="hero-line">I'm Chris, a computer engineering student at Waterloo. I enjoy working on both software and hardware.</h1>
+            </div>
+        </section>
+
+        <section class="strip" aria-label="Summary">
+            <div class="strip-inner" id="strip"></div>
+        </section>
+
+        <section class="work" id="work"></section>
+
+        <section class="about" id="about"></section>
+
+        <section class="record" id="record"></section>
     </main>
 
-    <!-- Project Modal -->
-    <div class="project-modal-overlay" id="projectModal">
-        <div class="project-modal">
-            <button class="close-modal" id="closeModal">×</button>
-            <div class="project-modal-content" id="modalContent">
-                <!-- Modal content will be dynamically loaded -->
+    <footer class="contact" id="contact">
+        <div class="contact-inner">
+            <div class="contact-lead">
+                <h2>Get in touch</h2>
+                <p>I'm looking for a January to April 2027 co-op in software or hardware, and I'm open to other opportunities too. Email is the best way to reach me.</p>
+                <a class="resume" href="assets/Chris_Law_Resume.pdf" download="Chris-Law-Resume.pdf">
+                    Download resume
+                    <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M8 1v10M4 7.5l4 4 4-4M2 14.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
             </div>
+            <dl class="contact-list">
+                <div class="contact-row">
+                    <dt>Email</dt>
+                    <dd><a href="mailto:claw2547@gmail.com">claw2547@gmail.com</a></dd>
+                </div>
+                <div class="contact-row">
+                    <dt>Phone</dt>
+                    <dd><a href="tel:+16047046831">604 704 6831</a></dd>
+                </div>
+                <div class="contact-row">
+                    <dt>GitHub</dt>
+                    <dd><a href="https://github.com/ChrisLaw123" target="_blank" rel="noopener noreferrer">ChrisLaw123</a></dd>
+                </div>
+                <div class="contact-row">
+                    <dt>LinkedIn</dt>
+                    <dd><a href="https://www.linkedin.com/in/chris-law-6b78a03a5/" target="_blank" rel="noopener noreferrer">chris-law</a></dd>
+                </div>
+            </dl>
         </div>
-    </div>
-
-    <!-- Footer -->
-    <footer id="contact">
-        <div class="footer-content">
-            <div class="footer-grid">
-                <div class="footer-section">
-                    <h3>Contact</h3>
-                    <a href="mailto:claw2547@gmail.com" class="footer-email">claw2547@gmail.com</a>
-                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">604-704-6831</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Connect</h3>
-                    <div class="footer-links">
-                        <a href="https://github.com/ChrisLaw123" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-                        <a href="https://www.linkedin.com/in/chris-law-6b78a03a5/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-                    </div>
-                </div>
-            </div>
+        <div class="colophon">
+            <span>&copy; 2026 Chris Law</span>
+            <span><a href="https://github.com/ChrisLaw123/chrislaw.github.io" target="_blank" rel="noopener noreferrer">Source</a></span>
         </div>
     </footer>
+
+    <div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Enlarged board view" hidden>
+        <div class="zoom-inner">
+            <img id="zoomImg" src="" alt="">
+            <p class="zoom-cap" id="zoomCap"></p>
+        </div>
+        <button class="zoom-close" id="zoomClose" type="button" aria-label="Close enlarged view">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="overlay" id="recordOverlay" role="dialog" aria-modal="true" aria-labelledby="recordTitle" hidden>
+        <article class="sheet">
+            <button class="sheet-close" id="recordClose" type="button" aria-label="Close project">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div id="recordContent"></div>
+        </article>
+    </div>
 
     <script src="app.js"></script>
 </body>

@@ -18,3 +18,12 @@ Desktop.ini
 # Temporary files
 *.tmp
 *.bak
+
+# Source files for the images the site serves. Derivatives live in
+# images/ and images/esp32/; the originals are large and would be
+# published verbatim by GitHub Pages.
+images/Me/
+images/esp_photos/
+
+# Working documents, never for publication
+assets/*Audit*.pdf
