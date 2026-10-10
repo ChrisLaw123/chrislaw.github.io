@@ -1,6 +1,6 @@
 const site = {
     statement: 'I\'m Chris, a computer engineering student at Waterloo. I enjoy working on both software and hardware.',
-    standfirst: 'Computer engineering at the University of Waterloo. The first revision of a custom ESP32-S3 board is built and on its way to me now, ready for bring-up.',
+    standfirst: 'Computer engineering at the University of Waterloo. The first revision of a custom ESP32-S3 board is built and powering up.',
 
     projects: [
         {
@@ -8,18 +8,37 @@ const site = {
             fact: '4-layer PCB, Altium',
             note: 'A custom four-layer board taken from schematic to manufactured PCB.',
             deck: 'A custom ESP32-S3 development board designed from scratch in Altium Designer and taken through fabrication and assembly at JLCPCB.',
+            /* photo-top.jpg is the Top 3D render's frame extended to 2.25:1,
+               with the photographed PCB warped onto the render's PCB
+               rectangle. The folder's image box is 2.06-2.24:1, so both are
+               width-limited there and the board lands on the same pixels in
+               either tab. photo-bottom.jpg sits on the mirror image of that
+               rectangle, so Photo -> Underside reads as turning the board
+               over. The photo tabs share a tint sampled from the wood. */
             images: [
+                {
+                    src: 'images/esp32/photo-top.jpg',
+                    label: 'Photo',
+                    tint: '#786B57',
+                    caption: 'The first assembled board, powered through the UART port with the power LED on. The photo is squared up to match the render under Top 3D.'
+                },
+                {
+                    src: 'images/esp32/photo-angle.jpg',
+                    label: 'Angled',
+                    sheetOnly: true,
+                    caption: 'The top side at an angle: the ESP32-S3 module, BOOT and RESET, the FT231XQ bridge, the 3.3 V regulator, and both jumper shunts fitted.'
+                },
+                {
+                    src: 'images/esp32/photo-bottom.jpg',
+                    label: 'Underside',
+                    tint: '#786B57',
+                    caption: 'The underside, with the headers fitted. The silkscreen labels every GPIO, header and control, so the board can be wired without opening the schematic. The QR code links back to this site.'
+                },
                 {
                     src: 'images/esp32/board-top.jpg',
                     label: 'Top 3D',
                     tint: '#216B47',
-                    caption: 'Top side. The UART and native-USB connectors sit at left with the USB1/+5V/USB2 selection jumper beside them, and the module\'s antenna overhangs the board edge at right so no copper sits under the radiator.'
-                },
-                {
-                    src: 'images/esp32/board-bottom.jpg',
-                    label: 'Bottom 3D',
-                    tint: '#246865',
-                    caption: 'The underside silkscreen labels every GPIO, header and control, so the board can be wired without opening the schematic. GPIO35 to 37 are absent from the list because the octal PSRAM uses them internally.'
+                    caption: 'The Altium render of the top side. The UART and native-USB connectors sit at left with the USB1/+5V/USB2 selection jumper beside them, and the module\'s antenna overhangs the board edge at right so no copper sits under the radiator.'
                 },
                 {
                     src: 'images/esp32/layout-top.png',
@@ -46,7 +65,7 @@ const site = {
                 'The board takes power from either of two USB-C connectors. A three-pin header with a jumper shunt selects which VBUS reaches the 5 V rail, so the two supplies are never tied together. A TL1963A-33 regulator drops that to 3.3 V, and a second jumper chooses between the regulator output and 3.3 V supplied from outside. One connector is a conventional USB-to-UART path through an FT231XQ bridge; the other is the ESP32-S3\'s native USB on GPIO19 and GPIO20, routed as a differential pair under Altium pair rules targeting 90 Ω. Both ports get independent 5.1 kΩ CC resistors, ESD protection at the connector, and 27 Ω series termination.',
                 'The part I did not expect to learn was manufacturing. The first JLCPCB submission failed audit because the NC drill files were not inside the Gerber archive. They had been generated correctly, just not uploaded. Then the thermal vias under the module\'s exposed pad came back flagged: at 0.20 mm drill with 0.40 mm copper they crossed a threshold that triggers a mandatory four-wire Kelvin test surcharge. Widening them to 0.45 mm kept the thermal path and removed the fee. A board can be electrically correct and still cost more to build than it needs to.',
                 'Two pairs of alternative 0 Ω footprints physically overlap on the layout, and only one of each pair should ever be fitted. Rather than trusting a note at checkout, I built an Altium prototype variant so the unfitted parts are excluded from the pick-and-place output entirely, and wrote targeted clearance rules that permit the intentional overlap without weakening component clearance across the rest of the board. Early DRC runs threw hundreds of violations: mask slivers, silkscreen clearance, exposed-pad clearance, unrouted nets. Most of them cleared once I set the board up against JLCPCB\'s own design constraints rather than generic defaults, and I closed the rest with specific rules instead of switching checks off.',
-                'Five bare boards were fabricated and two were assembled, which is enough to tell a design fault apart from a single bad component once bring-up starts. They are shipping to me now. The through-hole headers and jumper shunts are cheap enough to hand-solder. Next is checking the 5 V and 3.3 V rails before the module sees full power, then RESET and BOOT, UART flashing through the FT231X, native USB, and finally Wi-Fi.'
+                'Five bare boards were fabricated and two were assembled, which is enough to tell a design fault apart from a single bad component during bring-up. The through-hole headers and jumper shunts are cheap enough to hand-solder. The first assembled board powers up cleanly: the 5 V and 3.3 V rails check out and the power LED comes on. Next are RESET and BOOT, then UART flashing through the FT231X, native USB, and finally Wi-Fi.'
             ],
             notes: [
                 'GPIO35 to 37 are never exposed, because the octal PSRAM uses them internally',
@@ -67,7 +86,7 @@ const site = {
                 ['Designed in', 'Altium Designer'],
                 ['Fabrication', 'JLCPCB'],
                 ['Verification', '0 DRC violations, 0 unrouted nets (design check, not a functional test)'],
-                ['Status', 'Built and shipping, bring-up pending']
+                ['Status', 'Assembled and powers up. Flashing, native USB and Wi-Fi not yet tested']
             ],
             links: []
         },
@@ -76,7 +95,12 @@ const site = {
             fact: 'C++20, PostgreSQL',
             note: 'Real US stocks, virtual money, market data from Alpaca and a leaderboard.',
             deck: 'A full-stack stock trading simulator: live US market data, virtual portfolios, and a leaderboard, served by a C++ backend.',
-            images: [],
+            images: [
+                {
+                    src: 'images/trading-sim.png',
+                    caption: 'The trading screen: the watchlist of ten tickers, an hourly candlestick chart covering the last 100 hours, open positions, and the blotter of every fill. The market was closed when this was captured, so prices are the last close.'
+                }
+            ],
             body: [
                 'A simulator for trading real US stocks with virtual money. Every account opens with $100,000, prices come live from the Alpaca Markets API across ten tickers, and a leaderboard ranks players by total account value. Each ticker carries a hundred hours of history behind its candlestick chart.',
                 'The backend is C++20, which was not the obvious choice. A Crow HTTP server handles the API, PostgreSQL holds accounts, positions, and the full trade history through libpqxx, and libcurl fetches quotes from Alpaca. I chose C++ because I wanted to use it beyond coursework and learn how to build a backend around it, which meant handling connections, JSON parsing, and request routing myself.',
@@ -283,7 +307,7 @@ const FLAGSHIP = 0;
 
 const stats = [
     ['Studying', 'Computer engineering at Waterloo, 3.84 GPA'],
-    ['Right now', 'First boards built and shipping from JLCPCB'],
+    ['Right now', 'Bringing up my ESP32-S3 board: power works, flashing is next'],
     ['Looking for', 'Jan to Apr 2027 co-op in software or hardware, and open to other opportunities']
 ];
 
@@ -377,12 +401,18 @@ function platePlaceholder() {
         </svg>`;
 }
 
+/* A seventh tab would push the row onto two lines at laptop widths, so
+   views marked sheetOnly appear in the project sheet but not here. */
+function folderImages(project) {
+    return project.images.filter((image) => !image.sheetOnly);
+}
+
 /* A folder of every board view, sitting where the single render used to.
    The cards behind the front one stay visible so it reads as a stack with
    more in it, and the whole set is flippable in place - you no longer have
    to open the project sheet to see the layout or the schematic. */
 function folderMarkup(project) {
-    const images = project.images;
+    const images = folderImages(project);
     if (!images.length) {
         return `<div class="board-plate reveal">${platePlaceholder()}
                     <span class="plate-mark">Waiting on the assembled boards</span>
@@ -440,7 +470,7 @@ function bindFolder() {
     const root = document.getElementById('folder');
     if (!root) return;
 
-    folder.images = site.projects[FLAGSHIP].images;
+    folder.images = folderImages(site.projects[FLAGSHIP]);
     folder.count = folder.images.length;
     folder.index = 0;
 
@@ -475,7 +505,7 @@ function flagshipMarkup() {
             <div class="board-grid" id="board">
                 <div class="board-copy">
                     <h3>${project.title}</h3>
-                    <p>I designed a four-layer ESP32-S3 development board in Altium and prepared the manufacturing files for fabrication and assembly through JLCPCB.</p>
+                    <p>I designed a four-layer ESP32-S3 development board in Altium and had it fabricated and assembled by JLCPCB. The boards are here now, and the first one powers up.</p>
 
                     <dl class="board-panels">
                         ${boardPanels

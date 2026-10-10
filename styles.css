@@ -1502,6 +1502,9 @@ html.reveals .reveal.is-in {
     .nav-cta { margin-left: 0; padding: 6px 7px; }
     .wordmark { font-size: 0.875rem; }
     .nav-link { padding: 6px 3px; }
+    /* Six folder tabs took three rows at 320px with the desktop padding;
+       at 8px they fit in two, as the five did before the photos. */
+    .folder-tab { padding-left: 8px; padding-right: 8px; }
 }
 
 /* --- Reduced motion ---------------------------------------------- */
