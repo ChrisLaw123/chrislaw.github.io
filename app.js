@@ -1,6 +1,6 @@
 const site = {
     statement: 'I\'m Chris, a computer engineering student at Waterloo. I enjoy working on both software and hardware.',
-    standfirst: 'Computer engineering at the University of Waterloo. The first revision of a custom ESP32-S3 board is built and powering up.',
+    standfirst: 'Computer engineering at the University of Waterloo. The first revision of a custom ESP32-S3 board is built and running over native USB.',
 
     projects: [
         {
@@ -8,13 +8,14 @@ const site = {
             fact: '4-layer PCB, Altium',
             note: 'A custom four-layer board taken from schematic to manufactured PCB.',
             deck: 'A custom ESP32-S3 development board designed from scratch in Altium Designer and taken through fabrication and assembly at JLCPCB.',
-            /* photo-top.jpg is the Top 3D render's frame extended to 2.25:1,
-               with the photographed PCB warped onto the render's PCB
-               rectangle. The folder's image box is 2.06-2.24:1, so both are
-               width-limited there and the board lands on the same pixels in
-               either tab. photo-bottom.jpg sits on the mirror image of that
-               rectangle, so Photo -> Underside reads as turning the board
-               over. The photo tabs share a tint sampled from the wood. */
+            /* board-top.jpg shares photo-top.jpg's 1800x800 frame, placed by
+               matching the render's pads and silkscreen to the photo's (median
+               error under a pixel), so the board lands on the same pixels in
+               either tab at any frame size. photo-bottom.jpg sits on the mirror
+               image of that rectangle, so Photo -> Underside reads as turning
+               the board over. The two copper layers share a frame too, so
+               their through-hole pads coincide. The photo tabs share a tint
+               sampled from the wood. */
             images: [
                 {
                     src: 'images/esp32/photo-top.jpg',
@@ -50,22 +51,21 @@ const site = {
                     src: 'images/esp32/layout-bottom.png',
                     label: 'Bottom Layer',
                     tint: '#315CA8',
-                    caption: 'Bottom copper, carrying most of the GPIO fan-out from the module to the two header rows. The wide pours at left distribute 5 V and the regulated 3.3 V.'
+                    caption: 'Bottom copper, carrying most of the GPIO fan-out from the module to the two header rows. The two wide traces at upper left are the selected 5 V rail and +3V3_FTDI, the FT231XQ\'s own 3.3 V output, which feeds its VCCIO.'
                 },
                 {
                     src: 'images/esp32/schematic.png',
                     label: 'Schematic',
                     tint: '#956314',
-                    caption: 'The full sheet: both USB-C front ends, the 5 V and 3.3 V selection jumpers, the FT231XQ UART path, the two-transistor auto-programming circuit driven by DTR and RTS, and the module itself.'
+                    caption: 'The full sheet, corrected after bring-up: both USB-C front ends, the 5 V and 3.3 V selection jumpers, the FT231XQ UART path, the two-transistor auto-programming circuit driven by DTR and RTS, and the module itself. R18 and R19 now cross the bridge\'s TXD and RXD over to the module\'s U0RXD and U0TXD; the assembled boards predate the fix.'
                 }
             ],
             body: [
-                'I wanted to understand how a development board actually works, so I designed one. It is built around the ESP32-S3-WROOM-1-N8R8 module, which carries 8 MB of flash, 8 MB of octal PSRAM, and an integrated PCB antenna. The longer-term point of the board is to become the controller for a 3D-printed robot with motors, sensors, and eventually a vision peripheral, so it needed to be a platform rather than a one-off.',
-                'The starting point was <a href=\'https://fedevel.com/blog/how-to-make-custom-esp32-board-in-altium-designer-full-tutorial\' target=\'_blank\' rel=\'noopener noreferrer\'>Robert Feranec\'s custom ESP32 board tutorial</a> at FEDEVEL, which is what taught me the process end to end. I built around a different module, and that changed most of it: moving from the MINI to the WROOM meant a new schematic symbol, a new footprint with an exposed pad, a different pin map, and a different antenna strategy. It also cost me three GPIOs: on the N8R8 the octal PSRAM occupies GPIO35, 36 and 37 internally, so the schematic deliberately never exposes them. Every choice was cross-checked against Espressif\'s reference documentation, the DevKitC schematic, and the component datasheets rather than the tutorial.',
-                'The board takes power from either of two USB-C connectors. A three-pin header with a jumper shunt selects which VBUS reaches the 5 V rail, so the two supplies are never tied together. A TL1963A-33 regulator drops that to 3.3 V, and a second jumper chooses between the regulator output and 3.3 V supplied from outside. One connector is a conventional USB-to-UART path through an FT231XQ bridge; the other is the ESP32-S3\'s native USB on GPIO19 and GPIO20, routed as a differential pair under Altium pair rules targeting 90 Ω. Both ports get independent 5.1 kΩ CC resistors, ESD protection at the connector, and 27 Ω series termination.',
-                'The part I did not expect to learn was manufacturing. The first JLCPCB submission failed audit because the NC drill files were not inside the Gerber archive. They had been generated correctly, just not uploaded. Then the thermal vias under the module\'s exposed pad came back flagged: at 0.20 mm drill with 0.40 mm copper they crossed a threshold that triggers a mandatory four-wire Kelvin test surcharge. Widening them to 0.45 mm kept the thermal path and removed the fee. A board can be electrically correct and still cost more to build than it needs to.',
-                'Two pairs of alternative 0 Ω footprints physically overlap on the layout, and only one of each pair should ever be fitted. Rather than trusting a note at checkout, I built an Altium prototype variant so the unfitted parts are excluded from the pick-and-place output entirely, and wrote targeted clearance rules that permit the intentional overlap without weakening component clearance across the rest of the board. Early DRC runs threw hundreds of violations: mask slivers, silkscreen clearance, exposed-pad clearance, unrouted nets. Most of them cleared once I set the board up against JLCPCB\'s own design constraints rather than generic defaults, and I closed the rest with specific rules instead of switching checks off.',
-                'Five bare boards were fabricated and two were assembled, which is enough to tell a design fault apart from a single bad component during bring-up. The through-hole headers and jumper shunts are cheap enough to hand-solder. The first assembled board powers up cleanly: the 5 V and 3.3 V rails check out and the power LED comes on. Next are RESET and BOOT, then UART flashing through the FT231X, native USB, and finally Wi-Fi.'
+                'I designed a four-layer ESP32-S3 development board in Altium and brought it up through native USB. It uses an ESP32-S3-WROOM-1-N8R8 module with 8 MB of flash and 8 MB of octal PSRAM, two USB-C interfaces, GPIO headers, boot/reset buttons, and a TL1963A regulator that supplies 3.3 V from a 5 V input. The starting point was <a href=\'https://fedevel.com/blog/how-to-make-custom-esp32-board-in-altium-designer-full-tutorial\' target=\'_blank\' rel=\'noopener noreferrer\'>Robert Feranec’s custom ESP32 board tutorial</a> at FEDEVEL; I built mine around the WROOM module instead of the tutorial’s MINI.',
+                'I created the schematic, routed the PCB, and prepared the fabrication and assembly files. The four-layer layout uses internal power and ground planes, thermal vias, and trace-width calculations targeting 50 Ω single-ended and 90 Ω USB differential impedance. JLCPCB assembled the surface-mount components, including the 0402 parts; I hand-soldered the through-hole power and GPIO headers.',
+                'Testing through native USB confirmed successful firmware uploads, flash hash verification, and normal sketch execution. I measured the 3.3 V output, checked the power LED, and verified USB serial output, Wi-Fi operation, and the active-low LED on GPIO2 blinking one second on and one second off. A 1 MiB PSRAM block passed six write/read patterns.',
+                'The FT231X bridge appeared on COM3, but UART uploads received no response. I found TX connected to TX and RX connected to RX through the two 0 Ω links, R18 and R19. Native USB on COM4 bypasses that path, so the board remains usable through native USB. In the schematic, I swapped which module pin each link reaches, then corrected the PCB routes to match. The proposed repair for the existing board is to remove the two 0 Ω UART links and use two insulated jumper wires to cross-connect the correctly mapped TX/RX pads. I have not performed or tested that repair; it is optional for my current use through native USB.',
+                'The first successful upload cleared repeated invalid-header messages, likely caused by blank flash. Enabling USB CDC On Boot and using Serial at 115200 baud made firmware messages visible. Bring-up taught me to check physical package pin numbers as well as net names, and to test each interface separately. The schematic and layout images shown here are from the corrected design.'
             ],
             notes: [
                 'GPIO35 to 37 are never exposed, because the octal PSRAM uses them internally',
@@ -82,11 +82,12 @@ const site = {
                 ['Board size', '68.58 × 27.94 mm'],
                 ['Regulator', 'TL1963A-33'],
                 ['USB', 'FT231XQ bridge and native S3'],
-                ['Differential pair', '90 Ω routing target'],
+                ['Impedance targets', '50 Ω single-ended, 90 Ω USB differential'],
                 ['Designed in', 'Altium Designer'],
                 ['Fabrication', 'JLCPCB'],
                 ['Verification', '0 DRC violations, 0 unrouted nets (design check, not a functional test)'],
-                ['Status', 'Assembled and powers up. Flashing, native USB and Wi-Fi not yet tested']
+                ['Status', 'Brought up over native USB'],
+                ['Known issue', 'FT231X UART path wired TX to TX; corrected in the schematic and layout, not reworked on the built boards']
             ],
             links: []
         },
@@ -307,7 +308,7 @@ const FLAGSHIP = 0;
 
 const stats = [
     ['Studying', 'Computer engineering at Waterloo, 3.84 GPA'],
-    ['Right now', 'Bringing up my ESP32-S3 board: power works, flashing is next'],
+    ['Right now', 'My ESP32-S3 board is up and running firmware over native USB'],
     ['Looking for', 'Jan to Apr 2027 co-op in software or hardware, and open to other opportunities']
 ];
 
@@ -505,7 +506,7 @@ function flagshipMarkup() {
             <div class="board-grid" id="board">
                 <div class="board-copy">
                     <h3>${project.title}</h3>
-                    <p>I designed a four-layer ESP32-S3 development board in Altium and had it fabricated and assembled by JLCPCB. The boards are here now, and the first one powers up.</p>
+                    <p>I designed a four-layer ESP32-S3 development board in Altium, had it fabricated and assembled by JLCPCB, and brought it up through native USB.</p>
 
                     <dl class="board-panels">
                         ${boardPanels
