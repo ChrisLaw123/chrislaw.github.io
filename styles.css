@@ -46,6 +46,12 @@
     --hatch-sunk:  oklch(0.169 0.010 260);
     --hatch-floor: oklch(0.150 0.010 260);
 
+    /* Lattice geometry. Lines at 45deg on a 26px pitch repeat every
+       26 x sqrt(2) px down the page; HATCH_PERIOD in app.js is the
+       same figure. */
+    --hatch-pitch:  26px;
+    --hatch-period: calc(26px * 1.41421356);
+
     /* Shallow sine cut for the top and bottom of the About photograph.
        preserveAspectRatio="none" lets one path stretch to any width. */
     --wave-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='60' viewBox='0 0 640 60' preserveAspectRatio='none'%3E%3Cpath d='M0,30 C80,2 160,58 320,30 C480,2 560,58 640,30 L640,60 L0,60 Z' fill='%23000'/%3E%3C/svg%3E");
@@ -728,8 +734,11 @@ main { position: relative; z-index: 1; }
     background: oklch(0.08 0.006 260 / 0.93);
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
+    /* The same veil fade as the project sheet, in and out. */
+    animation: veil 0.18s var(--ease);
 }
 .zoom[hidden] { display: none; }
+.zoom.is-closing { animation: veil-out 0.18s var(--ease) forwards; }
 
 .zoom-inner {
     display: flex;
@@ -776,10 +785,23 @@ main { position: relative; z-index: 1; }
 /* No bottom rule: About follows, and its wave cut is the border. */
 .work { padding-block: clamp(56px, 8vw, 104px); }
 
+/* Rows of three that wrap, with a short last row centred under the full
+   ones. Nothing here counts the projects, so adding or removing one in
+   app.js lays the rows out again by itself. The breakpoints below only
+   change --per-row. */
 .cards {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(16px, 2vw, 24px);
+    --per-row: 3;
+    --card-gap: clamp(16px, 2vw, 24px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--card-gap);
+}
+/* An exact share of the row, less a twentieth of a pixel so rounding can
+   never push the last card of a full row onto a line of its own. */
+.cards > .card {
+    flex: 0 0 calc((100% - (var(--per-row) - 1) * var(--card-gap)) / var(--per-row) - 0.05px);
+    min-width: 0;
 }
 
 .card {
@@ -927,6 +949,45 @@ main { position: relative; z-index: 1; }
     padding-block: clamp(96px, 13vw, 168px);
     border-bottom: 0;
     --wave: 46px;
+    /* How long the wave takes to slide one whole 640px tile. */
+    --wave-cycle: 24s;
+}
+
+/* The photograph and its scrim are cut by the wave together, as one
+   layer. They used to carry a copy of the mask each, and along the curve
+   the two soft edges stacked: the scrim thinned out faster than the photo
+   under it, so the cut picked up a faint light outline. */
+.about-media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+
+    /* The wave tiles on a 640px period, so shifting mask-position-x slides
+       it sideways without seams. The two edges travel in opposite
+       directions so the band appears to breathe rather than march. */
+    -webkit-mask-image: var(--wave-top), linear-gradient(#000, #000), var(--wave-bottom);
+    mask-image: var(--wave-top), linear-gradient(#000, #000), var(--wave-bottom);
+    -webkit-mask-size: 640px var(--wave), 100% calc(100% - (var(--wave) * 2)), 640px var(--wave);
+    mask-size: 640px var(--wave), 100% calc(100% - (var(--wave) * 2)), 640px var(--wave);
+    -webkit-mask-position: 0px top, center, 0px bottom;
+    mask-position: 0px top, center, 0px bottom;
+    -webkit-mask-repeat: repeat-x, no-repeat, repeat-x;
+    mask-repeat: repeat-x, no-repeat, repeat-x;
+}
+
+/* The wave drifts on its own, no scrolling needed. app.js pauses it while
+   About is out of sight, where it would still repaint the photograph on
+   every frame. */
+@keyframes wave-drift {
+    to {
+        -webkit-mask-position: 640px top, center, -640px bottom;
+        mask-position: 640px top, center, -640px bottom;
+    }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .about-media { animation: wave-drift var(--wave-cycle) linear infinite; }
+    .about.is-out .about-media { animation-play-state: paused; }
 }
 
 .about-photo,
@@ -935,21 +996,6 @@ main { position: relative; z-index: 1; }
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
-    pointer-events: none;
-
-    /* The wave tiles on a 640px period, so shifting mask-position-x slides
-       it sideways without seams. --wave-x is driven from scroll in app.js;
-       the two edges travel in opposite directions so the band appears to
-       breathe rather than march. */
-    -webkit-mask-image: var(--wave-top), linear-gradient(#000, #000), var(--wave-bottom);
-    mask-image: var(--wave-top), linear-gradient(#000, #000), var(--wave-bottom);
-    -webkit-mask-size: 640px var(--wave), 100% calc(100% - (var(--wave) * 2)), 640px var(--wave);
-    mask-size: 640px var(--wave), 100% calc(100% - (var(--wave) * 2)), 640px var(--wave);
-    -webkit-mask-position: var(--wave-x, 0px) top, center, calc(var(--wave-x, 0px) * -1) bottom;
-    mask-position: var(--wave-x, 0px) top, center, calc(var(--wave-x, 0px) * -1) bottom;
-    -webkit-mask-repeat: repeat-x, no-repeat, repeat-x;
-    mask-repeat: repeat-x, no-repeat, repeat-x;
 }
 
 .about-photo {
@@ -1199,6 +1245,14 @@ main { position: relative; z-index: 1; }
 }
 @keyframes sheet-in { from { opacity: 0; transform: translateY(14px) scale(0.99); } }
 
+/* Closing reverses the opening: the veil fades and the sheet drops back
+   the 14px it rose. app.js keeps the overlay in the page until the fade
+   has finished. */
+.overlay.is-closing { animation: veil-out 0.18s var(--ease) forwards; }
+.overlay.is-closing .sheet { animation: sheet-out 0.18s var(--ease) forwards; }
+@keyframes veil-out { to { opacity: 0; } }
+@keyframes sheet-out { to { opacity: 0; transform: translateY(14px) scale(0.99); } }
+
 .sheet-close {
     position: absolute;
     top: 14px; right: 14px;
@@ -1362,14 +1416,31 @@ main { position: relative; z-index: 1; }
 
 /* --- Scroll reveal ----------------------------------------------- */
 
-/* Deliberately narrow: the flagship plate and the work cards only.
-   Everything else is simply present when you get there. */
-html.reveals .reveal { opacity: 0; transform: translateY(14px); }
+/* Everything below the hero rises in once, the first time it scrolls
+   into view: the strip, the headings, the board copy and folder, the
+   cards, About's text, the record and the contact block. The hero line
+   and About's photograph stay put - one anchors the page, the other is
+   a band rather than a piece of content.
+
+   An animation on `translate`, not a transition on `transform`. The
+   transition version outranked .card:hover, so once a card had
+   revealed it held transform at none - the hover lift never happened -
+   and its transition list replaced the card's own, so the border and
+   background snapped instead of fading. `translate` is a separate
+   property from the `transform` the hover sets, and an animation leaves
+   the card's transitions alone. */
+html.reveals .reveal { opacity: 0; translate: 0 14px; }
 html.reveals .reveal.is-in {
     opacity: 1;
-    transform: none;
-    transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
-    transition-delay: var(--d, 0ms);
+    translate: none;
+    animation: reveal-in 0.55s var(--ease) var(--d, 0ms) backwards;
+}
+@keyframes reveal-in { from { opacity: 0; translate: 0 14px; } }
+
+/* A printout never scrolls, so anything not reached yet must not stay
+   hidden on paper. */
+@media print {
+    html.reveals .reveal { opacity: 1; translate: none; animation: none; }
 }
 
 /* --- Ground: stacked material ------------------------------------
@@ -1427,24 +1498,85 @@ html.reveals .reveal.is-in {
    flexible and still hold a reference plane. It is line work, not
    texture, so type stays legible over it.
 
-   --hatch-y is driven from scroll in app.js: the lattice travels at
-   about a third of the page's speed, so it reads as a plane behind
-   the content rather than something printed on it. One custom
-   property drives every band, so a scroll frame is a single style
-   write rather than seven.
+   The lattice travels at about a third of the page's speed, so it
+   reads as a plane behind the content rather than something printed
+   on it.
+
+   Each band holds its own copy on a fixed layer the size of the
+   window. Every copy has the same size and position, so the lines
+   carry straight on across band edges and only the ink changes. The
+   compositor moves a layer by its transform without repainting it.
+   The lattice used to be a fixed background moved by
+   background-position, which repainted the whole window on every
+   scroll frame.
+
+   The layer hangs off .ground, an empty element app.js puts first in
+   each band, which cuts it to the band with clip-path. The clip is
+   not on the band itself: a clip-path edge is drawn at the band's
+   exact fractional position, so the band's own colour, top edge and
+   V-score would come out blended into the next band. .ground starts
+   1px down, under the top edge, and stops above the V-score, so the
+   lattice never crosses either.
+
+   Where the browser has scroll-driven animations, CSS moves the layers
+   in step with the scroll and no script runs while scrolling. The
+   lattice repeats every --hatch-period, so a layer only ever travels
+   one period and starts again; app.js sets how many of those laps fit
+   in the page's scroll range. Other browsers get the same motion from
+   app.js through --hatch-y.
 ------------------------------------------------------------------- */
 
+@property --hatch-y { syntax: '<length>'; inherits: false; initial-value: 0px; }
+
+/* Each band stacks its own ground between its colour and its content. */
 .hero, .strip, .work, .about, .record, .contact {
+    position: relative;
+    isolation: isolate;
+}
+
+.ground {
+    position: absolute;
+    inset: 1px 0 0;
+    z-index: -1;
+    clip-path: inset(0);
+    pointer-events: none;
+}
+.about > .ground { inset: 0; }
+
+.ground::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    /* One period taller than the window, so a lap never shows the edge. */
+    height: calc(100lvh + var(--hatch-period));
     background-image:
-        repeating-linear-gradient(45deg,  var(--hatch) 0 1.5px, transparent 1.5px 26px),
-        repeating-linear-gradient(-45deg, var(--hatch) 0 1.5px, transparent 1.5px 26px);
-    background-attachment: fixed;
-    background-position: 0 var(--hatch-y, 0px), 0 var(--hatch-y, 0px);
+        repeating-linear-gradient(45deg,  var(--hatch) 0 1.5px, transparent 1.5px var(--hatch-pitch)),
+        repeating-linear-gradient(-45deg, var(--hatch) 0 1.5px, transparent 1.5px var(--hatch-pitch));
+    /* --hatch-y does not inherit, so the layer asks for its ground's
+       value outright. Only the script fallback ever writes it. */
+    --hatch-y: inherit;
+    transform: translateY(var(--hatch-y));
+    will-change: transform;
 }
 
 .hero { --hatch: var(--hatch-raise); }
 .about, .strip, .work, .record { --hatch: var(--hatch-sunk); }
 .contact                 { --hatch: var(--hatch-floor); }
+
+@keyframes hatch-drift { to { transform: translateY(calc(-1 * var(--hatch-period))); } }
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+        .ground::before {
+            animation: hatch-drift linear both;
+            animation-duration: auto;
+            animation-timeline: scroll(root block);
+            animation-iteration-count: var(--hatch-laps, 1);
+        }
+    }
+}
 
 /* --- Responsive -------------------------------------------------- */
 
@@ -1461,7 +1593,7 @@ html.reveals .reveal.is-in {
        title, then the evidence, then the reasoning. */
     .folder { order: -1; position: static; margin-bottom: 26px; }
     .sheet-body { grid-template-columns: minmax(0, 1fr); }
-    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { --per-row: 2; }
 }
 
 @media (max-width: 860px) {
@@ -1485,7 +1617,7 @@ html.reveals .reveal.is-in {
     .nav-link { padding: 6px 7px; font-size: 0.6875rem; letter-spacing: 0.02em; }
     .nav-cta { margin-left: 3px; padding: 6px 9px; font-size: 0.6875rem; letter-spacing: 0.02em; }
     .masthead-inner { gap: 8px; }
-    .cards { grid-template-columns: minmax(0, 1fr); }
+    .cards { --per-row: 1; }
     .board-panels { grid-template-columns: minmax(0, 1fr); }
     .colophon { flex-direction: column; gap: 6px; }
 }
@@ -1511,7 +1643,7 @@ html.reveals .reveal.is-in {
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .reveal { opacity: 1 !important; transform: none !important; }
+    .reveal { opacity: 1 !important; translate: none !important; transform: none !important; }
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;

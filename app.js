@@ -335,6 +335,9 @@ const recordContent = document.getElementById('recordContent');
 const shots = { index: 0, count: 0, images: [] };
 let historyOpen = false;
 let lastFocused = null;
+/* Bumped on every open and close, so a fade that finishes after the sheet
+   has been reopened knows it is stale and leaves the sheet alone. */
+let sheetClosing = 0;
 
 
 
@@ -343,7 +346,7 @@ let lastFocused = null;
 function paintStrip() {
     document.getElementById('strip').innerHTML = stats
         .map(([key, value]) => `
-            <div class="stat">
+            <div class="stat reveal">
                 <span class="stat-key">${key}</span>
                 <span class="stat-val">${value}</span>
             </div>`)
@@ -505,10 +508,13 @@ function flagshipMarkup() {
     return `
             <div class="board-grid" id="board">
                 <div class="board-copy">
-                    <h3>${project.title}</h3>
-                    <p>I designed a four-layer ESP32-S3 development board in Altium, had it fabricated and assembled by JLCPCB, and brought it up through native USB.</p>
+                    <h3 class="reveal">${project.title}</h3>
+                    <p class="reveal">I designed a four-layer ESP32-S3 development board in Altium, had it fabricated and assembled by JLCPCB, and brought it up through native USB.</p>
 
-                    <dl class="board-panels">
+                    <!-- One unit, not four: the 1px rules between the panels
+                         are this list's own background showing through, so a
+                         panel fading on its own would flash a grey block. -->
+                    <dl class="board-panels reveal">
                         ${boardPanels
                             .map(([key, reason]) => `
                             <div class="panel">
@@ -518,7 +524,7 @@ function flagshipMarkup() {
                             .join('')}
                     </dl>
 
-                    <div class="board-actions">
+                    <div class="board-actions reveal">
                         <button class="btn btn-accent" type="button" data-project="${FLAGSHIP}">How I built it</button>
                     </div>
                 </div>
@@ -541,8 +547,7 @@ function card(project, index) {
               .join('')}</span>`;
 
     return `
-        <button class="card reveal" type="button"
-                data-project="${index}" style="--d:${(index - 1) * 55}ms">
+        <button class="card reveal" type="button" data-project="${index}">
             <span class="card-shot">${shot}</span>
             <span class="card-body">
                 <span class="card-title">${project.title}</span>
@@ -562,13 +567,13 @@ function paintWork() {
 
     document.getElementById('work').innerHTML = `
         <div class="wrap">
-            <div class="sec-head">
+            <div class="sec-head reveal">
                 <h2>Projects</h2>
             </div>
 
             ${flagshipMarkup()}
 
-            <div class="sec-head sec-head-sub">
+            <div class="sec-head sec-head-sub reveal">
                 <h2>Other projects</h2>
                 <p>Firmware, backends and small tools. Most of them started as something I didn&rsquo;t know how to finish.</p>
             </div>
@@ -584,9 +589,11 @@ function paintAbout() {
     const about = site.about;
 
     document.getElementById('about').innerHTML = `
-        <img class="about-photo" src="${about.photo}" alt="${about.photoAlt}" loading="lazy">
-        <div class="about-scrim" aria-hidden="true"></div>
-        <figcaption class="geo">
+        <div class="about-media">
+            <img class="about-photo" src="${about.photo}" alt="${about.photoAlt}" loading="lazy">
+            <div class="about-scrim" aria-hidden="true"></div>
+        </div>
+        <figcaption class="geo reveal">
             <svg class="geo-pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path d="M12 22s7-7.1 7-12a7 7 0 1 0-14 0c0 4.9 7 12 7 12z"
                       fill="none" stroke="currentColor" stroke-width="1.7"
@@ -599,10 +606,10 @@ function paintAbout() {
             </span>
         </figcaption>
         <div class="wrap about-inner">
-            <div class="sec-head"><h2>About</h2></div>
+            <div class="sec-head reveal"><h2>About</h2></div>
             <div class="prose">
-                <p class="lead">${about.lead}</p>
-                ${about.body.map((paragraph) => `<p>${paragraph}</p>`).join('')}
+                <p class="lead reveal">${about.lead}</p>
+                ${about.body.map((paragraph) => `<p class="reveal">${paragraph}</p>`).join('')}
             </div>
         </div>`;
 }
@@ -610,8 +617,10 @@ function paintAbout() {
 function paintRecord() {
     document.getElementById('record').innerHTML = `
         <div class="wrap">
-            <div class="sec-head"><h2>Education and experience</h2></div>
-            <table class="rows">
+            <div class="sec-head reveal"><h2>Education and experience</h2></div>
+            <!-- Each table arrives whole. The rules between rows are collapsed
+                 table borders, which stay where they are when a row moves. -->
+            <table class="rows reveal">
                 <tbody>
                     ${site.record
                         .map((item) => `
@@ -626,8 +635,8 @@ function paintRecord() {
                 </tbody>
             </table>
 
-            <div class="sec-head" style="margin-top:clamp(40px,6vw,72px)"><h2>Tools and languages</h2></div>
-            <table class="rows">
+            <div class="sec-head reveal" style="margin-top:clamp(40px,6vw,72px)"><h2>Tools and languages</h2></div>
+            <table class="rows reveal">
                 <tbody>
                     ${site.skills
                         .map(([group, items]) => `
@@ -685,6 +694,10 @@ function openProject(index) {
     const project = site.projects[index];
     if (!project) return;
 
+    /* Reopened while the last close was still fading out. */
+    sheetClosing++;
+    overlay.classList.remove('is-closing');
+
     lastFocused = document.activeElement;
     shots.images = project.images;
     shots.count = project.images.length;
@@ -734,7 +747,7 @@ function openProject(index) {
 
     overlay.hidden = false;
     overlay.scrollTop = 0;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     setBackgroundInert(true);
     bindShots();
     updateShots();
@@ -757,6 +770,29 @@ function setBackgroundInert(on) {
         if (on) el.setAttribute('inert', '');
         else el.removeAttribute('inert');
     });
+}
+
+/* Hiding the page's scrollbar while a view is open made the layout wider by
+   the scrollbar's width, so everything behind the veil slid sideways by half
+   of it, and back again on close. Padding the body by the same amount holds
+   the layout still. Overlay scrollbars take no room, so they need nothing. */
+function lockScroll() {
+    const gap = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (gap > 0) document.body.style.paddingRight = gap + 'px';
+}
+
+function unlockScroll() {
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+}
+
+/* Calls done once the element's running animations have finished, or at
+   once if it has none. A rejected promise means a reopen cancelled the fade
+   and has taken over, so there is nothing left to do. */
+function whenAnimated(el, done) {
+    const running = typeof el.getAnimations === 'function' ? el.getAnimations({ subtree: true }) : [];
+    Promise.all(running.map((animation) => animation.finished)).then(done, () => {});
 }
 
 /* Tab must not walk out of the sheet and into the page behind it. */
@@ -782,16 +818,26 @@ function trapTab(event) {
 }
 
 /* fromPop is true when the browser already moved us back, so we must not
-   call history.back() again and skip a second entry. */
+   call history.back() again and skip a second entry.
+
+   The sheet fades out the way it faded in, so it stays in the page until
+   the fade ends. The page behind is live again straight away. */
 function closeProject(fromPop) {
-    if (overlay.hidden) return;
-    overlay.hidden = true;
-    document.body.style.overflow = '';
+    if (overlay.hidden || overlay.classList.contains('is-closing')) return;
+    const token = ++sheetClosing;
+    overlay.classList.add('is-closing');
     setBackgroundInert(false);
-    recordContent.innerHTML = '';
     shots.images = [];
     shots.count = 0;
     if (lastFocused) lastFocused.focus();
+
+    whenAnimated(overlay, () => {
+        if (token !== sheetClosing) return;
+        overlay.classList.remove('is-closing');
+        overlay.hidden = true;
+        recordContent.innerHTML = '';
+        if (document.getElementById('zoom').hidden) unlockScroll();
+    });
 
     if (historyOpen && !fromPop) {
         historyOpen = false;
@@ -867,17 +913,22 @@ function watchReveals() {
 
     document.documentElement.classList.add('reveals');
 
-    /* Nothing on this page is worth hiding for longer than a moment. If a
-       reveal has not been tripped by now, show it anyway. */
-    setTimeout(() => targets.forEach((el) => el.classList.add('is-in')), 2200);
-
+    /* Each piece rises in once, the first time it comes into view. There
+       used to be a timer that showed everything after 2.2 seconds, which
+       meant that by the time anyone scrolled down, nothing below the first
+       screen was left to move. Whatever arrives together - the first
+       screen, a row of cards - comes up in reading order, a beat apart. */
     const io = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            entry.target.classList.add('is-in');
-            io.unobserve(entry.target);
-        });
-    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+        entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => (a.boundingClientRect.top - b.boundingClientRect.top)
+                || (a.boundingClientRect.left - b.boundingClientRect.left))
+            .forEach((entry, i) => {
+                entry.target.style.setProperty('--d', Math.min(i, 8) * 60 + 'ms');
+                entry.target.classList.add('is-in');
+                io.unobserve(entry.target);
+            });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0 });
 
     targets.forEach((el) => io.observe(el));
 }
@@ -917,7 +968,10 @@ document.addEventListener('click', (event) => {
     if (trigger) openProject(Number(trigger.dataset.project));
 });
 
-document.getElementById('recordClose').addEventListener('click', closeProject);
+/* Wrapped so the click event is not passed in as fromPop. Passed straight
+   through, it read as "the browser already went back", the history entry
+   was never removed, and the next Back press after closing did nothing. */
+document.getElementById('recordClose').addEventListener('click', () => closeProject());
 
 overlay.addEventListener('click', (event) => {
     if (event.target === overlay) closeProject();
@@ -928,7 +982,9 @@ document.addEventListener('keydown', (event) => {
         closeZoom();
         return;
     }
-    if (overlay.hidden) return;
+    /* A sheet that is fading out is already closed as far as keys go:
+       Tab must not be trapped back into it. */
+    if (overlay.hidden || overlay.classList.contains('is-closing')) return;
     if (event.key === 'Escape') closeProject();
     if (event.key === 'Tab') trapTab(event);
     if (event.key === 'ArrowLeft') stepShots(-1);
@@ -970,28 +1026,60 @@ syncToggleLabel();
 
 /* The hatched ground plane travels at about a third of the page's speed,
    which puts it on a plane behind the content instead of printed on it.
-   Motion is entirely scroll-driven - nothing animates on its own.
+   It moves only when the page scrolls.
 
-   One custom property on :root drives all seven bands, so a frame costs a
-   single style write. The rAF gate keeps that to once per painted frame no
-   matter how many scroll events fire. */
+   styles.css puts each band's lattice on a layer the compositor moves
+   without repainting. Where the browser has scroll-driven animations, CSS
+   moves those layers by itself and nothing here runs while scrolling: this
+   only keeps the lap count matched to the page's scroll range. The lattice
+   repeats every HATCH_PERIOD px, so a layer travels one period per lap and
+   starts again.
+
+   Other browsers get the same motion from a rAF-gated scroll listener. It
+   writes --hatch-y to each band's ground, never to :root - every element
+   inherits a property set there, so one write restyled about 230 of the
+   page's 258 elements per frame. --hatch-y is registered as non-inheriting,
+   so a write restyles only the element it lands on. */
+const HATCH_SPEED = 0.34;
+const HATCH_PERIOD = 26 * Math.SQRT2;   /* --hatch-period in styles.css */
+const BANDS = '.hero, .strip, .work, .about, .record, .contact';
+
+/* An empty first child per band to hold the lattice. It clips the layer
+   to its band, so it goes in once the bands have been painted. */
+function layGround() {
+    document.querySelectorAll(BANDS).forEach((band) => {
+        const ground = document.createElement('div');
+        ground.className = 'ground';
+        ground.setAttribute('aria-hidden', 'true');
+        band.prepend(ground);
+    });
+}
+
 function watchHatch() {
     if (reduceMotion) return;
 
     const root = document.documentElement;
-    let last = null;
+
+    if (CSS.supports('animation-timeline', 'scroll()')) {
+        const size = () => {
+            const range = Math.max(0, root.scrollHeight - root.clientHeight);
+            root.style.setProperty('--hatch-laps', (range * HATCH_SPEED / HATCH_PERIOD).toFixed(4));
+        };
+        size();
+        /* The range moves when images and fonts land and the page grows,
+           and when the window changes height. */
+        new ResizeObserver(size).observe(root);
+        window.addEventListener('resize', size);
+        return;
+    }
+
+    const grounds = document.querySelectorAll('.ground');
     let queued = false;
 
     function paint() {
         queued = false;
-        const y = Math.round(window.scrollY * -0.34);
-        if (y === last) return;
-        last = y;
-        root.style.setProperty('--hatch-y', y + 'px');
-        /* The About band's wave edges slide sideways on the same scroll.
-           Slower than the hatch, and wrapped to the 640px tile so the value
-           never grows without bound. */
-        root.style.setProperty('--wave-x', ((window.scrollY * 0.14) % 640) + 'px');
+        const y = -((window.scrollY * HATCH_SPEED) % HATCH_PERIOD);
+        grounds.forEach((ground) => ground.style.setProperty('--hatch-y', y.toFixed(2) + 'px'));
     }
 
     window.addEventListener('scroll', () => {
@@ -1003,11 +1091,26 @@ function watchHatch() {
     paint();
 }
 
+/* ---------- wave -------------------------------------------------- */
+
+/* About's wave edges drift on their own (wave-drift in styles.css). Out of
+   sight they would still repaint the photograph every frame, so they pause
+   until About is back in view. */
+function watchWave() {
+    const about = document.getElementById('about');
+    if (!about || reduceMotion || !('IntersectionObserver' in window)) return;
+
+    new IntersectionObserver(([entry]) => {
+        about.classList.toggle('is-out', !entry.isIntersecting);
+    }).observe(about);
+}
+
 /* ---------- enlarge ---------------------------------------------- */
 
 /* The schematic is a full A2 sheet; at folder size it reads as a map, not
    a drawing. Clicking any view opens it as large as the window allows. */
 let zoomReturn = null;
+let zoomClosing = 0;
 
 function openZoom(index) {
     const image = folder.images[index];
@@ -1017,22 +1120,34 @@ function openZoom(index) {
     const img = document.getElementById('zoomImg');
     const cap = document.getElementById('zoomCap');
 
+    zoomClosing++;
+    box.classList.remove('is-closing');
+
     zoomReturn = document.activeElement;
     img.src = image.src;
     img.alt = site.projects[FLAGSHIP].title + ', ' + (image.label || '').toLowerCase();
     cap.textContent = image.caption || '';
     box.hidden = false;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     document.getElementById('zoomClose').focus();
 }
 
+/* Fades out like the project sheet. The image is only cleared once it is
+   no longer visible, or it would blink out before the backdrop did. */
 function closeZoom() {
     const box = document.getElementById('zoom');
-    if (box.hidden) return;
-    box.hidden = true;
-    document.getElementById('zoomImg').src = '';
-    if (overlay.hidden) document.body.style.overflow = '';
+    if (box.hidden || box.classList.contains('is-closing')) return;
+    const token = ++zoomClosing;
+    box.classList.add('is-closing');
     if (zoomReturn) zoomReturn.focus();
+
+    whenAnimated(box, () => {
+        if (token !== zoomClosing) return;
+        box.classList.remove('is-closing');
+        box.hidden = true;
+        document.getElementById('zoomImg').src = '';
+        if (overlay.hidden) unlockScroll();
+    });
 }
 
 function bindZoom() {
@@ -1081,6 +1196,8 @@ paintAbout();
 paintRecord();
 watchReveals();
 watchSections();
+layGround();
 watchHatch();
+watchWave();
 bindZoom();
 restoreHash();
